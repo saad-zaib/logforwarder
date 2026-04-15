@@ -1,0 +1,68 @@
+# ─────────────────────────────────────────────
+# SAP Log Forwarder & Wazuh Monitor — Config
+# ─────────────────────────────────────────────
+# Pass to the script with:  --config config.yaml
+# Any value omitted here falls back to the built-in default.
+
+# ── Monitor selection ──────────────────────────
+log_monitor: true
+sap_wazuh: true
+
+# ── Log Forwarding Monitor ─────────────────────
+log:
+  destination_ip: "74.162.152.133"
+  destination_port: 514
+
+  # Static files to tail
+  file1: "/usr/sap/S4T/D00/work/dev_icm"
+  file2: "/tmp/system_logs.json"
+  file3: "/tmp/sal_export.json"
+  file4: "/tmp/sap_version.json"
+
+  # Date-rotating file  →  <dir>/<prefix>YYYYMMDD
+  date_based_dir: "/usr/sap/S4T/D00/log"
+  date_based_prefix: "gw_log-S4T-faplh-"
+
+  # Position-tracker directory (created automatically)
+  position_dir: "/home/admin1/.log_monitor_positions"
+
+  # Mark which files carry XOR/Base64 encryption
+  encrypted_files:
+    - "/tmp/system_logs.json"
+    - "/tmp/sal_export.json"
+    - "/tmp/sap_version.json"
+
+# ── SAP → Wazuh Monitor ────────────────────────
+sap:
+  input_file:  "/tmp/encrypt_benchmark.xml"
+  local_out:   "/home/admin1/sap_sca_results.txt"
+  local_temp:  "/home/admin1/sap_sca_results_temp.txt"
+  hash_file:   "/home/admin1/.sap_sca_last_hash"
+  log_file:    "/home/admin1/sap_monitor.log"
+
+  check_interval: 10   # seconds between file-change polls
+  stable_wait:    3    # seconds of size-stability before processing
+
+  wazuh:
+    user:     "demo"
+    host:     "154.57.212.220"
+    port:     81
+    password: "demo"
+    sap_dir:  "/var/ossec/sap"
+    temp_dir: "/home/demo"
+
+  # Lines containing any of these keywords are dropped before transfer
+  skip_keywords:
+    - "CATALOG_READ_Privilege"
+    - "TRACE_ADMIN_Privilege"
+    - "CONTENT_ADMIN_Role"
+    - "SAP_INTERNAL_HANA_SUPPORT_Role"
+    - "INIFILE_ADMIN_Privilege"
+    - "SERVICE_ADMIN_Privilege"
+    - "LICENSE_ADMIN_Privilege"
+    - "LOG_ADMIN_Privilege"
+    - "TRUST_ADMIN_Privilege"
+    - "IMPORT_EXPORT_Privileges"
+    - "Encryption_LOG_PERSISTENCE_Status"
+    - "Active_Network_Services"
+    - "Session_Configuration"
